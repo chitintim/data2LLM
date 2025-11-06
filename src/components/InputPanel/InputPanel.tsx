@@ -14,6 +14,7 @@ export function InputPanel() {
   } = useDataStore();
 
   const [showRaw, setShowRaw] = useState(false);
+  const [showDebug, setShowDebug] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInputData(e.target.value);
@@ -61,17 +62,62 @@ export function InputPanel() {
 
       {/* Stats & Merge Info */}
       {stats && (
-        <div className="mb-3 flex flex-wrap gap-x-4 gap-y-1 text-xs">
-          <span className="text-gray-600 dark:text-gray-400">
-            {stats.rowCount} rows × {stats.columnCount} columns
-          </span>
-          <span className="text-gray-600 dark:text-gray-400">
-            {stats.nonEmptyCells} filled cells
-          </span>
-          {hasMergedCells && (
-            <span className="text-green-600 dark:text-green-400 font-medium">
-              ✓ Filled {mergedCellStats.totalFilled} merged cells
+        <div className="mb-3">
+          <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs items-center">
+            <span className="text-gray-600 dark:text-gray-400">
+              {stats.rowCount} rows × {stats.columnCount} columns
             </span>
+            <span className="text-gray-600 dark:text-gray-400">
+              {stats.nonEmptyCells} filled cells
+            </span>
+            {hasMergedCells && (
+              <span className="text-green-600 dark:text-green-400 font-medium">
+                ✓ Filled {mergedCellStats.totalFilled} merged cells
+              </span>
+            )}
+            <button
+              onClick={() => setShowDebug(!showDebug)}
+              className="text-xs px-2 py-0.5 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700"
+            >
+              {showDebug ? 'Hide Debug' : 'Debug Info'}
+            </button>
+          </div>
+
+          {/* Debug Panel */}
+          {showDebug && (
+            <div className="mt-2 p-2 bg-gray-50 dark:bg-gray-900 rounded text-xs font-mono space-y-1">
+              <div className="text-gray-700 dark:text-gray-300">
+                <strong>Input Analysis:</strong>
+              </div>
+              <div className="text-gray-600 dark:text-gray-400">
+                • Length: {inputData.length} chars
+              </div>
+              <div className="text-gray-600 dark:text-gray-400">
+                • Has quotes: {inputData.includes('"') ? '✓ YES' : '✗ NO'}
+                {inputData.includes('"') && ` (${inputData.split('"').length - 1} found)`}
+              </div>
+              <div className="text-gray-600 dark:text-gray-400">
+                • Has tabs: {inputData.includes('\t') ? '✓ YES' : '✗ NO'}
+                {inputData.includes('\t') && ` (${inputData.split('\t').length - 1} found)`}
+              </div>
+              <div className="text-gray-600 dark:text-gray-400">
+                • Newlines: {inputData.split('\n').length - 1}
+              </div>
+              <div className="text-gray-600 dark:text-gray-400">
+                • Parsed into: {processedData.length} rows
+              </div>
+              {inputData.includes('"') && (
+                <div className="text-green-600 dark:text-green-400">
+                  ✓ Multi-line cell parser active (quotes detected)
+                </div>
+              )}
+              <div className="mt-2 text-gray-700 dark:text-gray-300">
+                <strong>First 150 chars:</strong>
+              </div>
+              <div className="text-gray-600 dark:text-gray-400 break-all">
+                {inputData.substring(0, 150).replace(/\t/g, '→').replace(/\n/g, '↵\n')}
+              </div>
+            </div>
           )}
         </div>
       )}
