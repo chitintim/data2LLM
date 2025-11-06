@@ -103,6 +103,9 @@ function App() {
             (Honestly just got tired of Excel tables confusing LLMs, so here we
             are)
           </p>
+          <p className="text-xs opacity-50 mt-2">
+            v2.1 • Multi-line cell support • Build: {new Date().toISOString().split('T')[0]}
+          </p>
         </footer>
       </div>
     </div>
