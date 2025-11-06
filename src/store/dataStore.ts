@@ -9,7 +9,7 @@ import {
   toPlainList,
   detectHeader,
 } from '@/lib/transformers';
-import { fillAllMergedCells, type MergedCellStats } from '@/lib/operations';
+import { fillAllMergedCells, type MergedCellStats, transpose } from '@/lib/operations';
 
 /**
  * Transform data to the selected output format
@@ -66,6 +66,7 @@ interface DataStore {
   // Actions
   setInputData: (data: string) => void;
   setFormat: (format: OutputFormat) => void;
+  transposeData: () => void;
   clearData: () => void;
 }
 
@@ -138,6 +139,25 @@ export const useDataStore = create<DataStore>((set) => ({
 
       return {
         selectedFormat: format,
+        outputData: output,
+      };
+    });
+  },
+
+  transposeData: () => {
+    set((state) => {
+      // Transpose the processed data
+      const transposedData = transpose(state.processedData);
+
+      // Re-detect header on transposed data
+      const hasHeader = detectHeader(transposedData);
+
+      // Re-transform with current format
+      const output = transformData(transposedData, state.selectedFormat, hasHeader);
+
+      return {
+        processedData: transposedData,
+        hasHeader,
         outputData: output,
       };
     });
