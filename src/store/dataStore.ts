@@ -2,8 +2,47 @@ import { create } from 'zustand';
 import type { ParsedData } from '@/lib/types';
 import { OutputFormat } from '@/lib/types';
 import { parseTSV } from '@/lib/parser';
-import { toMarkdownTable, detectHeader } from '@/lib/transformers';
+import {
+  toMarkdownTable,
+  toJSONFlat,
+  toMarkdownHierarchical,
+  toPlainList,
+  detectHeader,
+} from '@/lib/transformers';
 import { fillAllMergedCells, type MergedCellStats } from '@/lib/operations';
+
+/**
+ * Transform data to the selected output format
+ */
+function transformData(
+  data: ParsedData,
+  format: OutputFormat,
+  hasHeader: boolean
+): string {
+  if (!data || data.length === 0) {
+    return '';
+  }
+
+  switch (format) {
+    case OutputFormat.MARKDOWN_TABLE:
+      return toMarkdownTable(data, hasHeader);
+
+    case OutputFormat.JSON_FLAT:
+      return toJSONFlat(data, hasHeader);
+
+    case OutputFormat.MARKDOWN_HIERARCHICAL:
+      return toMarkdownHierarchical(data, hasHeader);
+
+    case OutputFormat.PLAIN_LIST:
+      return toPlainList(data, hasHeader);
+
+    case OutputFormat.MARKDOWN_LIST:
+      return toMarkdownHierarchical(data, hasHeader); // Same as hierarchical for now
+
+    default:
+      return toMarkdownTable(data, hasHeader);
+  }
+}
 
 interface DataStore {
   // Input data
@@ -68,8 +107,11 @@ export const useDataStore = create<DataStore>((set) => ({
       // Detect if first row is header
       const hasHeader = detectHeader(processedData);
 
-      // Transform to markdown (default format)
-      const output = toMarkdownTable(processedData, hasHeader);
+      // Get current format from state (default to MARKDOWN_TABLE)
+      const currentFormat = OutputFormat.MARKDOWN_TABLE;
+
+      // Transform to selected format
+      const output = transformData(processedData, currentFormat, hasHeader);
 
       // Update state
       set({
@@ -90,8 +132,15 @@ export const useDataStore = create<DataStore>((set) => ({
   },
 
   setFormat: (format: OutputFormat) => {
-    // TODO: Transform data to selected format
-    set({ selectedFormat: format });
+    set((state) => {
+      // Re-transform the processed data with the new format
+      const output = transformData(state.processedData, format, state.hasHeader);
+
+      return {
+        selectedFormat: format,
+        outputData: output,
+      };
+    });
   },
 
   clearData: () => {

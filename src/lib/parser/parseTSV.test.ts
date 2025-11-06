@@ -27,6 +27,47 @@ describe('parseTSV', () => {
       ['C', 'D'],
     ]);
   });
+
+  it('should handle multi-line cells (quoted with newlines)', () => {
+    const input = 'Name\tDescription\nProject A\t"Line 1\nLine 2\nLine 3"\nProject B\tSingle line';
+    const result = parseTSV(input);
+
+    expect(result).toEqual([
+      ['Name', 'Description'],
+      ['Project A', 'Line 1\nLine 2\nLine 3'],
+      ['Project B', 'Single line'],
+    ]);
+  });
+
+  it('should handle escaped quotes within quoted cells', () => {
+    const input = 'Name\tQuote\nPerson A\t"He said ""Hello"""';
+    const result = parseTSV(input);
+
+    expect(result).toEqual([
+      ['Name', 'Quote'],
+      ['Person A', 'He said "Hello"'],
+    ]);
+  });
+
+  it('should handle tabs inside quoted cells', () => {
+    const input = 'Name\tData\nTest\t"Value1\tValue2\tValue3"';
+    const result = parseTSV(input);
+
+    expect(result).toEqual([
+      ['Name', 'Data'],
+      ['Test', 'Value1\tValue2\tValue3'],
+    ]);
+  });
+
+  it('should handle mixed quoted and unquoted cells', () => {
+    const input = 'A\t"B\nB2"\tC\n"D\nD2"\tE\t"F"';
+    const result = parseTSV(input);
+
+    expect(result).toEqual([
+      ['A', 'B\nB2', 'C'],
+      ['D\nD2', 'E', 'F'],
+    ]);
+  });
 });
 
 describe('isTSVFormat', () => {
