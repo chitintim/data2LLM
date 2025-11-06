@@ -1,5 +1,6 @@
 import { InputPanel } from './components/InputPanel';
 import { OutputPanel } from './components/OutputPanel';
+import { ControlPanel } from './components/ControlPanel';
 
 function App() {
   return (
@@ -15,17 +16,23 @@ function App() {
           </p>
         </header>
 
-        {/* Main Content - Two Panel Layout */}
-        <main className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          {/* Input Panel */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 h-[600px]">
-            <InputPanel />
+        {/* Main Content - Three Panel Layout */}
+        <main className="space-y-6 mb-8">
+          {/* Top Row: Input and Output */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Input Panel */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 h-[600px]">
+              <InputPanel />
+            </div>
+
+            {/* Output Panel */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 h-[600px]">
+              <OutputPanel />
+            </div>
           </div>
 
-          {/* Output Panel */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 h-[600px]">
-            <OutputPanel />
-          </div>
+          {/* Bottom Row: Control Panel (Format Selector) */}
+          <ControlPanel />
         </main>
 
         {/* Instructions */}
@@ -60,10 +67,10 @@ function App() {
               <span className="text-2xl">3️⃣</span>
               <div>
                 <h3 className="font-medium text-gray-900 dark:text-white mb-1">
-                  Copy Output
+                  Choose Format & Copy
                 </h3>
                 <p className="text-gray-600 dark:text-gray-400">
-                  Click Copy to get your formatted Markdown table
+                  Select your preferred format (Markdown, JSON, Lists) and copy the output
                 </p>
               </div>
             </div>
