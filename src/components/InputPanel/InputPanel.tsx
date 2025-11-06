@@ -1,8 +1,19 @@
+import { useState } from 'react';
 import { useDataStore } from '@/store';
 import { getDataStats } from '@/lib/parser';
+import { PreviewTable } from './PreviewTable';
 
 export function InputPanel() {
-  const { inputData, parsedData, setInputData, clearData } = useDataStore();
+  const {
+    inputData,
+    processedData,
+    hasHeader,
+    mergedCellStats,
+    setInputData,
+    clearData,
+  } = useDataStore();
+
+  const [showRaw, setShowRaw] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInputData(e.target.value);
@@ -12,7 +23,9 @@ export function InputPanel() {
     clearData();
   };
 
-  const stats = parsedData.length > 0 ? getDataStats(parsedData) : null;
+  const stats = processedData.length > 0 ? getDataStats(processedData) : null;
+  const hasMergedCells =
+    mergedCellStats && mergedCellStats.totalFilled > 0;
 
   return (
     <div className="flex flex-col h-full">
@@ -26,37 +39,62 @@ export function InputPanel() {
             Paste your Excel or spreadsheet data here
           </p>
         </div>
-        {inputData && (
-          <button
-            onClick={handleClear}
-            className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-          >
-            Clear
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {processedData.length > 0 && (
+            <button
+              onClick={() => setShowRaw(!showRaw)}
+              className="text-xs px-2 py-1 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700"
+            >
+              {showRaw ? 'Show Table' : 'Show Raw'}
+            </button>
+          )}
+          {inputData && (
+            <button
+              onClick={handleClear}
+              className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            >
+              Clear
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* Stats */}
+      {/* Stats & Merge Info */}
       {stats && (
-        <div className="mb-3 flex gap-4 text-xs text-gray-600 dark:text-gray-400">
-          <span>
+        <div className="mb-3 flex flex-wrap gap-x-4 gap-y-1 text-xs">
+          <span className="text-gray-600 dark:text-gray-400">
             {stats.rowCount} rows × {stats.columnCount} columns
           </span>
-          <span>{stats.nonEmptyCells} filled cells</span>
+          <span className="text-gray-600 dark:text-gray-400">
+            {stats.nonEmptyCells} filled cells
+          </span>
+          {hasMergedCells && (
+            <span className="text-green-600 dark:text-green-400 font-medium">
+              ✓ Filled {mergedCellStats.totalFilled} merged cells
+            </span>
+          )}
         </div>
       )}
 
-      {/* Textarea */}
-      <textarea
-        value={inputData}
-        onChange={handleChange}
-        placeholder="Paste your data here... (Try copying cells from Excel or Google Sheets)"
-        className="flex-1 w-full p-4 border border-gray-300 dark:border-gray-600 rounded-lg
-                   bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100
-                   placeholder-gray-400 dark:placeholder-gray-500
-                   focus:ring-2 focus:ring-primary-500 focus:border-transparent
-                   font-mono text-sm resize-none"
-      />
+      {/* Content: Table or Textarea */}
+      <div className="flex-1 overflow-hidden">
+        {processedData.length > 0 && !showRaw ? (
+          <PreviewTable data={processedData} hasHeader={hasHeader} />
+        ) : (
+          <textarea
+            value={inputData}
+            onChange={handleChange}
+            placeholder="Paste your data here...
+
+Try copying cells from Excel or Google Sheets - they'll appear as a table!"
+            className="w-full h-full p-4 border border-gray-300 dark:border-gray-600 rounded-lg
+                       bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100
+                       placeholder-gray-400 dark:placeholder-gray-500
+                       focus:ring-2 focus:ring-primary-500 focus:border-transparent
+                       font-mono text-sm resize-none"
+          />
+        )}
+      </div>
     </div>
   );
 }
