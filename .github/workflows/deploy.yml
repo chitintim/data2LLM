@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - claude/initial-documentation-setup-011CUrhnXZ5zRRvZfdKMRjJr
   workflow_dispatch:
 
 permissions:
