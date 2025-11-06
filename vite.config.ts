@@ -10,7 +10,7 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
-  base: '/data2LLM/',
+  base: './',
   build: {
     outDir: 'dist',
     sourcemap: true,
