@@ -2,6 +2,7 @@ import type { ParsedData } from '@/lib/types';
 
 /**
  * Parses tab-separated values (TSV) - the format Excel uses when copying cells
+ * Handles multi-line cells (cells with line breaks) which are wrapped in quotes
  *
  * @param input - Raw string from clipboard
  * @returns 2D array of cell values
@@ -11,15 +12,73 @@ export function parseTSV(input: string): ParsedData {
     return [];
   }
 
-  // Split by newlines to get rows
-  const lines = input.split(/\r?\n/);
+  const result: ParsedData = [];
+  let currentRow: string[] = [];
+  let currentCell = '';
+  let insideQuotes = false;
+  let i = 0;
 
-  // Parse each line into cells (split by tabs)
-  const data: ParsedData = lines
-    .filter(line => line.trim()) // Remove empty lines
-    .map(line => line.split('\t'));
+  while (i < input.length) {
+    const char = input[i];
+    const nextChar = input[i + 1];
 
-  return data;
+    if (char === '"') {
+      if (insideQuotes && nextChar === '"') {
+        // Escaped quote: "" becomes "
+        currentCell += '"';
+        i += 2;
+        continue;
+      } else {
+        // Toggle quote state
+        insideQuotes = !insideQuotes;
+        i++;
+        continue;
+      }
+    }
+
+    if (!insideQuotes && char === '\t') {
+      // Tab outside quotes = new cell
+      currentRow.push(currentCell);
+      currentCell = '';
+      i++;
+      continue;
+    }
+
+    if (!insideQuotes && (char === '\n' || char === '\r')) {
+      // Newline outside quotes = new row
+      currentRow.push(currentCell);
+
+      // Only add row if it has content
+      if (currentRow.some(cell => cell.trim())) {
+        result.push(currentRow);
+      }
+
+      currentRow = [];
+      currentCell = '';
+
+      // Skip \r\n combinations
+      if (char === '\r' && nextChar === '\n') {
+        i += 2;
+      } else {
+        i++;
+      }
+      continue;
+    }
+
+    // Regular character or newline/tab inside quotes
+    currentCell += char;
+    i++;
+  }
+
+  // Don't forget the last cell and row
+  if (currentCell || currentRow.length > 0) {
+    currentRow.push(currentCell);
+    if (currentRow.some(cell => cell.trim())) {
+      result.push(currentRow);
+    }
+  }
+
+  return result;
 }
 
 /**
